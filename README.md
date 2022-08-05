@@ -1,4 +1,4 @@
-# psusage
+# psusage ![gha build](https://github.com/karantan/psusage/workflows/Go/badge.svg)
 Cross-platform process cpu % and memory usage of a program.
 
 Inspired by https://github.com/struCoder/pidusage but I've decided to only get the
@@ -12,6 +12,9 @@ not parse `/proc/<pid>/stat` file, because this is already done by the `ps` tool
 Ref: https://man7.org/linux/man-pages/man5/proc.5.html
 
 With this change the code should be simpler and easiler to hack.
+
+## Usage
+TODO
 
 ## Installation
 TODO
