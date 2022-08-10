@@ -82,7 +82,7 @@ func parseStatPS(psOut string) (usages []CPU_Usage) {
 		infoArr := strings.Fields(line)
 		usages = append(usages, CPU_Usage{
 			PCPU:     parseFloat(infoArr[0]),
-			Duration: parseCPUTime(infoArr[1]),
+			Duration: parseCPUTime(infoArr[1]) + 1, // because we are checking every second
 			Program:  infoArr[4],
 			PID:      parseInt(infoArr[2]),
 			User:     infoArr[3],

@@ -1,6 +1,6 @@
 # psusage ![gha build](https://github.com/karantan/psusage/workflows/Go/badge.svg)
 
-Cross-platform process cpu % and memory usage of a program.
+Tool for monitoring CPU usage for a program (and it's forks).
 
 Inspired by https://github.com/struCoder/pidusage but I've decided to only get the
 information from the [`ps`](https://man7.org/linux/man-pages/man1/ps.1.html) tool and
@@ -33,14 +33,14 @@ Around this number one must balance out processes and their CPU usage on a serve
 
 ## How it works
 
-Basically run `ps -o pcpu=,time=,pid=,user= $(pidof <program>)` and add process this
+Basically run `ps -o pcpu=,time=,pid=,user:32=,comm= $(pidof <program>)` and add process this
 information. Example of an output for program `php-fpm`
 
 ```
- 0.1 00:00:00 3477510 root
-36.5 00:01:23 3477549 foo_com
-10.1 00:00:21 3477680 bar_com
- 0.2 00:00:00 3477884 baz_com
+ 0.1 00:00:00 3477510 root myprogram
+36.5 00:01:23 3477549 foo_com myprogram
+10.1 00:00:21 3477680 bar_com myprogram
+ 0.2 00:00:00 3477884 baz_com myprogram
 ```
 
 We update cpu utilization of the process every second and when the process no longer

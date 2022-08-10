@@ -2,21 +2,41 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"psusage/collect"
+	"psusage/influxdb"
 	"psusage/logger"
 	"psusage/version"
+	"runtime"
 	"time"
 )
 
-// func init() {
-// 	platform := runtime.GOOS
-// 	if platform != "linux" {
-// 		fmt.Println("Only supported on Linux.")
-// 		os.Exit(1)
-// 	}
-// }
+var (
+	log      = logger.New("main")
+	hostname string
+	influx   influxdb.InfluxClient
+)
 
-var log = logger.New("main")
+func init() {
+	platform := runtime.GOOS
+	if platform != "linux" {
+		fmt.Println("Only supported on Linux.")
+		os.Exit(1)
+	}
+	hostname, _ = os.Hostname()
+	initInflux(os.Getenv("INFLUXDB_PSUSAGE_HOST"))
+}
+
+func initInflux(influxDSN string) influxdb.InfluxClient {
+	influx = influxdb.NewInfluxDSN(influxDSN)
+	_, _, err := influx.Ping(5)
+	if err != nil {
+		log.Fatal("No response from the InfluxDB: ", err)
+		os.Exit(1)
+	}
+	return influx
+}
 
 func main() {
 	log.Infof("Running psusage version %s", version.Version)
@@ -33,6 +53,7 @@ func main() {
 		running, stopped = collect.ProgramCPU(program, running, collect.GetProgramStats)
 		if len(stopped) > 0 {
 			for _, p := range stopped {
+				influxdb.AddPoint(influx, p, hostname)
 				log.Infof("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
 			}
 			stopped = []collect.CPU_Usage{}

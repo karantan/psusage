@@ -87,10 +87,10 @@ func Test_parseStatPS(t *testing.T) {
 `
 	got := parseStatPS(psOut)
 	want := []CPU_Usage{
-		{0.1, 5, "myprogram", 3477510, "root"},
-		{0.4, 61, "myprogram", 3518860, "worker1"},
-		{28.0, 3672, "myprogram", 3520027, "worker2"},
-		{6.1, 3, "myprogram", 3519918, "worker3"},
+		{0.1, 6, "myprogram", 3477510, "root"},
+		{0.4, 62, "myprogram", 3518860, "worker1"},
+		{28.0, 3673, "myprogram", 3520027, "worker2"},
+		{6.1, 4, "myprogram", 3519918, "worker3"},
 	}
 	assert.Equal(t, want, got)
 }

@@ -2,20 +2,19 @@ package influxdb
 
 import (
 	"net/url"
+	"os"
+	"psusage/collect"
+	"time"
 
 	client "github.com/influxdata/influxdb/client/v2"
 )
 
-type InfluxSource interface {
-	Query(client.Query) (*client.Response, error)
-}
-
-// Influx holds InfluxDB client
+// InfluxClient holds InfluxDB client
 type InfluxClient struct {
 	client.Client
 }
 
-// NewInfluxDSN returns InfluxDB client ready for use
+// NewInfluxDSN returns influxdb2 client ready for use
 func NewInfluxDSN(dsn string) InfluxClient {
 	u, err := url.Parse(dsn)
 	if err != nil {
@@ -37,13 +36,42 @@ func NewInfluxDSN(dsn string) InfluxClient {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return InfluxClient{influxC}
 }
 
-func RunQuery(influx InfluxSource, command, database, precision string) (res []client.Result, err error) {
+// AddPoint adds `collect.CPU_Usage` point to the InfluxDB
+func AddPoint(db InfluxClient, u collect.CPU_Usage, hostname string) {
+	// Make sure the database exists (`CREATE DATABASE psusage`)
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  "psusage",
+		Precision: "s",
+	})
+
+	measurement := "cpu"
+	tags := map[string]string{
+		"server":  hostname,
+		"program": u.Program,
+		"user":    u.User,
+	}
+	fields := map[string]interface{}{
+		"pcpu":     u.PCPU,
+		"duration": u.Duration,
+	}
+
+	// insert cpu,server=<hostname>,program=<program>,user=<user> pcpu=<%CPU>,duration=<seconds>
+	p, _ := client.NewPoint(measurement, tags, fields, time.Now().UTC())
+	bp.AddPoint(p)
+
+	// Write the batch
+	if err := db.Write(bp); err != nil {
+		log.Fatal("InfluxDB write error", err)
+		os.Exit(1)
+	}
+}
+
+func RunQuery(db InfluxClient, command, database, precision string) (res []client.Result, err error) {
 	q := client.NewQuery(command, database, precision)
-	r, err := influx.Query(q)
+	r, err := db.Query(q)
 	if err != nil {
 		return
 	}
