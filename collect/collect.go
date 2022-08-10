@@ -30,7 +30,7 @@ type CPU_Usage struct {
 }
 
 // define psStats function for DI
-type psStats func(string) []CPU_Usage
+type psStats func([]string) []CPU_Usage
 
 // ProgramCPU add/updates cpu usage for all `program` processes (one or many).
 // Return 2 slices of CPU_Usage. First slice contain processes that are still running
@@ -44,8 +44,8 @@ type psStats func(string) []CPU_Usage
 // 2.1 Those that are not found in the `newUsage` add to the `stopped` CPU_Usage slice
 // 3. loop through the `newUsage` and add/update CPU_Usage elements in the `running`
 // 	  CPU_Usage slice.
-func ProgramCPU(program string, oldUsage []CPU_Usage, fn psStats) (running []CPU_Usage, stopped []CPU_Usage) {
-	newUsage := fn(program)
+func ProgramCPU(programs []string, oldUsage []CPU_Usage, fn psStats) (running []CPU_Usage, stopped []CPU_Usage) {
+	newUsage := fn(programs)
 
 	// step 2 (filter out processes that have stopped)
 	notNewMember := func(i CPU_Usage) bool {
@@ -70,8 +70,8 @@ func ProgramCPU(program string, oldUsage []CPU_Usage, fn psStats) (running []CPU
 }
 
 // GetProgramStats is a wrapper for calling `parseStatPS(statFromPS(<program>))`
-func GetProgramStats(program string) (usages []CPU_Usage) {
-	return parseStatPS(statFromPS(program))
+func GetProgramStats(programs []string) (usages []CPU_Usage) {
+	return parseStatPS(statFromPS(programs))
 }
 
 func parseStatPS(psOut string) (usages []CPU_Usage) {
@@ -103,8 +103,13 @@ func parseStatPS(psOut string) (usages []CPU_Usage) {
 // The first number is %CPU usage, 2nd is the cumulative CPU time, process pid and
 // effective user name.
 // For more details see https://man7.org/linux/man-pages/man1/ps.1.html
-func statFromPS(program string) string {
-	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user:32=,comm= $(pidof %s)", program)
+func statFromPS(programs []string) string {
+	f := func(p string) string {
+		return fmt.Sprintf("$(pidof %s)", p)
+	}
+	pidOfs := strings.Join(gofp.ForEach(f, programs), " ")
+
+	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user:32=,comm= %s", pidOfs)
 	cmd := exec.Command("bash", "-c", psCommand)
 	log.Debugf("Running: `%s`", cmd.String())
 	cmd.Stderr = os.Stderr

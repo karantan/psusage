@@ -7,7 +7,7 @@ import (
 )
 
 func TestProgramCPU_OldEmpty(t *testing.T) {
-	fstats := func(program string) (usages []CPU_Usage) {
+	fstats := func(programs []string) (usages []CPU_Usage) {
 		return []CPU_Usage{
 			{0.1, 5, "myprogram", 100, "root"},
 			{0.4, 61, "myprogram", 200, "worker1"},
@@ -22,12 +22,12 @@ func TestProgramCPU_OldEmpty(t *testing.T) {
 		{6.1, 3, "myprogram", 400, "worker3"},
 	}
 	wantStopped := []CPU_Usage{}
-	gotRunning, gotStopped := ProgramCPU("mydatabase", []CPU_Usage{}, fstats)
+	gotRunning, gotStopped := ProgramCPU([]string{"mydatabase"}, []CPU_Usage{}, fstats)
 	assert.Equal(t, wantRunning, gotRunning)
 	assert.Equal(t, wantStopped, gotStopped)
 }
 func TestProgramCPU_AddUpdate(t *testing.T) {
-	fstats := func(program string) (usages []CPU_Usage) {
+	fstats := func(programs []string) (usages []CPU_Usage) {
 		return []CPU_Usage{
 			{1, 6, "myprogram", 100, "root"},
 			{4, 62, "myprogram", 200, "worker1"},
@@ -42,7 +42,7 @@ func TestProgramCPU_AddUpdate(t *testing.T) {
 		{8.0, 3673, "myprogram", 300, "worker2"},
 	}
 	wantStopped := []CPU_Usage{}
-	gotRunning, gotStopped := ProgramCPU("mydatabase", []CPU_Usage{
+	gotRunning, gotStopped := ProgramCPU([]string{"mydatabase"}, []CPU_Usage{
 		{0, 0, "myprogram", 100, "root"},
 		{0, 0, "myprogram", 200, "worker1"},
 		{0, 0, "myprogram", 400, "worker3"},
@@ -52,7 +52,7 @@ func TestProgramCPU_AddUpdate(t *testing.T) {
 }
 
 func TestProgramCPU_AllStopped(t *testing.T) {
-	fstats := func(program string) (usages []CPU_Usage) {
+	fstats := func(programs []string) (usages []CPU_Usage) {
 		return
 	}
 	wantStopped := []CPU_Usage{
@@ -60,7 +60,7 @@ func TestProgramCPU_AllStopped(t *testing.T) {
 		{0, 0, "myprogram", 200, "worker1"},
 		{0, 0, "myprogram", 400, "worker3"},
 	}
-	gotRunning, gotStopped := ProgramCPU("mydatabase", []CPU_Usage{
+	gotRunning, gotStopped := ProgramCPU([]string{"mydatabase"}, []CPU_Usage{
 		{0, 0, "myprogram", 100, "root"},
 		{0, 0, "myprogram", 200, "worker1"},
 		{0, 0, "myprogram", 400, "worker3"},
@@ -70,10 +70,10 @@ func TestProgramCPU_AllStopped(t *testing.T) {
 }
 
 func TestProgramCPU_AllEmpty(t *testing.T) {
-	fstats := func(program string) (usages []CPU_Usage) {
+	fstats := func(programs []string) (usages []CPU_Usage) {
 		return
 	}
-	gotRunning, gotStopped := ProgramCPU("mydatabase", []CPU_Usage{}, fstats)
+	gotRunning, gotStopped := ProgramCPU([]string{"mydatabase"}, []CPU_Usage{}, fstats)
 	assert.Equal(t, 0, len(gotRunning))
 	assert.Equal(t, 0, len(gotStopped))
 }

@@ -9,6 +9,7 @@ import (
 	"psusage/logger"
 	"psusage/version"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -40,17 +41,25 @@ func initInflux(influxDSN string) influxdb.InfluxClient {
 
 func main() {
 	log.Infof("Running psusage version %s", version.Version)
-	var program string
-	flag.StringVar(&program, "program", "", "Name of the program you want to monitor CPU usage over time. Example: mysqld, haproxy, php-fpm, etc")
-	flag.Parse()
+	var p string
+	flag.StringVar(&p, "programs", "", `Name of the program(s) you want to monitor CPU usage over time. Example:
 
-	log.Infof("Monitoring CPU usage for %s", program)
+	psusage --programs "mysqld haproxy php-fpm"
+
+Or just:
+
+	psusage --programs mysqld`,
+	)
+	flag.Parse()
+	programs := strings.Fields(p)
+
+	log.Infof("Monitoring CPU usage for %s", programs)
 
 	c := time.Tick(1 * time.Second)
 	running := []collect.CPU_Usage{}
 	stopped := []collect.CPU_Usage{}
 	for ; true; <-c {
-		running, stopped = collect.ProgramCPU(program, running, collect.GetProgramStats)
+		running, stopped = collect.ProgramCPU(programs, running, collect.GetProgramStats)
 		if len(stopped) > 0 {
 			for _, p := range stopped {
 				influxdb.AddPoint(influx, p, hostname)
