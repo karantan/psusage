@@ -104,9 +104,9 @@ func parseStatPS(psOut string) (usages []CPU_Usage) {
 // effective user name.
 // For more details see https://man7.org/linux/man-pages/man1/ps.1.html
 func statFromPS(program string) string {
-	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user= $(pidof %s)", program)
+	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user:32=,comm= $(pidof %s)", program)
 	cmd := exec.Command("bash", "-c", psCommand)
-	log.Infof("Running: `%s`", cmd.String())
+	log.Debugf("Running: `%s`", cmd.String())
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 
@@ -122,7 +122,7 @@ func statFromPS(program string) string {
 func CPUs() int {
 	// `nproc` is part of coreutils. See https://man7.org/linux/man-pages/man1/nproc.1.html
 	cmd := exec.Command("nproc")
-	log.Infof("Running: `%s`", cmd.String())
+	log.Debugf("Running: `%s`", cmd.String())
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 

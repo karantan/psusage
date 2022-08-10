@@ -28,11 +28,12 @@ func main() {
 
 	c := time.Tick(1 * time.Second)
 	running := []collect.CPU_Usage{}
+	stopped := []collect.CPU_Usage{}
 	for ; true; <-c {
-		_, stopped := collect.ProgramCPU(program, running, collect.GetProgramStats)
+		running, stopped = collect.ProgramCPU(program, running, collect.GetProgramStats)
 		if len(stopped) > 0 {
 			for _, p := range stopped {
-				log.Infof("%s (%s:%d) used %s% CPU over %s", p.Program, p.User, p.PID, p.PCPU, p.Duration)
+				log.Infof("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
 			}
 			stopped = []collect.CPU_Usage{}
 		}
