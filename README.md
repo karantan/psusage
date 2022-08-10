@@ -1,10 +1,10 @@
 # psusage ![gha build](https://github.com/karantan/psusage/workflows/Go/badge.svg)
 
-Tool for monitoring CPU usage for a program (and it's forks).
+Tool for monitoring CPU usage for a program (and its forks).
 
-Inspired by https://github.com/struCoder/pidusage but I've decided to only get the
+Inspired by https://github.com/struCoder/pidusage, but I've decided only to get the
 information from the [`ps`](https://man7.org/linux/man-pages/man1/ps.1.html) tool and
-not parse `/proc/<pid>/stat` file, because this is already done by the `ps` tool.
+not parse `/proc/<pid>/stat` file because this is already done by the `ps` tool.
 
 > /proc/[pid]/stat
 >    Status information about the process.  This is used by
@@ -12,7 +12,7 @@ not parse `/proc/<pid>/stat` file, because this is already done by the `ps` tool
 
 Ref: https://man7.org/linux/man-pages/man5/proc.5.html
 
-With this change the code should be simpler and easiler to hack.
+With this change, the code should be simpler and easier to hack.
 
 
 ## Key concepts and definitions
@@ -29,12 +29,12 @@ Examples:
 1 CPU credit = 6000 vCPU utilisation seconds.
 
 So one server has 8_640_000 vCPU utilisation seconds (i.e. CPU credits) per day per CPU.
-Around this number one must balance out processes and their CPU usage on a server.
+Around this number, one must balance out processes and their CPU usage on a server.
 
 ## How it works
 
 Basically run `ps -o pcpu=,time=,pid=,user:32=,comm= $(pidof <program>)` and add process this
-information. Example of an output for program `php-fpm`
+information. Example of output for program `php-fpm`
 
 ```
  0.1 00:00:00 3477510 root myprogram
@@ -43,10 +43,10 @@ information. Example of an output for program `php-fpm`
  0.2 00:00:00 3477884 baz_com myprogram
 ```
 
-We update cpu utilization of the process every second and when the process no longer
-exists (i.e. it stopped) we send CPU credit used to the InfluxDB.
+We update CPU utilization of the process every second, and when the process no longer
+exists (i.e. it stopped), we send CPU credits to the InfluxDB.
 
-From there we can then do all sort of aggregation because we have all the information we
+From there, we can then do all sorts of aggregation because we have all the information we
 need:
 
 1. Average CPU utilisation (in %)
