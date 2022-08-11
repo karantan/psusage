@@ -48,17 +48,21 @@ func AddPoint(db InfluxClient, u collect.CPU_Usage, hostname string) {
 		os.Exit(1)
 	}
 
-	for retry := 0; retry < 3; retry++ {
+	retry := 0
+	for {
 		err := WritePoint(db, point, retry)
 		if err == nil {
 			break
 		}
-
+		retry++
 		log.Error("InfluxDB write error", err)
 		time.Sleep(time.Duration(retry) * time.Second)
+		if retry >= 3 {
+			log.Error("Max retries exceeded while trying to write to InfluxDB")
+			os.Exit(1)
+		}
 	}
-	log.Error("Max retries exceeded while trying to write to InfluxDB")
-	os.Exit(1)
+
 }
 
 // CreatePoint creates a `collect.CPU_Usage` point InfluxDB point which we can send
