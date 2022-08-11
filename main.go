@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	log      = logger.New("main")
+	log      = logger.New("main", debug)
 	hostname string
 	influx   influxdb.InfluxClient
+	debug    bool
 )
 
 func init() {
@@ -50,6 +51,7 @@ Or just:
 
 	psusage --programs mysqld`,
 	)
+	flag.BoolVar(&debug, "debug", false, "Debug mode. I'll write the data to the InfluxDB and also to the stdout.")
 	flag.Parse()
 	programs := strings.Fields(p)
 
@@ -63,7 +65,7 @@ Or just:
 		if len(stopped) > 0 {
 			for _, p := range stopped {
 				influxdb.AddPoint(influx, p, hostname)
-				log.Infof("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
+				log.Debugf("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
 			}
 			stopped = []collect.CPU_Usage{}
 		}

@@ -39,14 +39,31 @@ func NewInfluxDSN(dsn string) InfluxClient {
 	return InfluxClient{influxC}
 }
 
-// AddPoint adds `collect.CPU_Usage` point to the InfluxDB
+// AddPoint creates and writes a Influx point to the `db` InfluxClient (InfluxDB).
+// It will retry max of 3 times in case of an error.
 func AddPoint(db InfluxClient, u collect.CPU_Usage, hostname string) {
-	// Make sure the database exists (`CREATE DATABASE psusage`)
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  "psusage",
-		Precision: "s",
-	})
+	point, err := CreatePoint(u, hostname)
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
 
+	for retry := 0; retry < 3; retry++ {
+		err := WritePoint(db, point, retry)
+		if err == nil {
+			break
+		}
+
+		log.Error("InfluxDB write error", err)
+		time.Sleep(time.Duration(retry) * time.Second)
+	}
+	log.Error("Max retries exceeded while trying to write to InfluxDB")
+	os.Exit(1)
+}
+
+// CreatePoint creates a `collect.CPU_Usage` point InfluxDB point which we can send
+// to the InfluxDB (see WritePoint).
+func CreatePoint(u collect.CPU_Usage, hostname string) (*client.Point, error) {
 	measurement := "cpu"
 	tags := map[string]string{
 		"server":  hostname,
@@ -59,14 +76,20 @@ func AddPoint(db InfluxClient, u collect.CPU_Usage, hostname string) {
 	}
 
 	// insert cpu,server=<hostname>,program=<program>,user=<user> pcpu=<%CPU>,duration=<seconds>
-	p, _ := client.NewPoint(measurement, tags, fields, time.Now().UTC())
+	return client.NewPoint(measurement, tags, fields, time.Now().UTC())
+}
+
+// WritePoint writes influx points in batch.
+func WritePoint(db InfluxClient, p *client.Point, retry int) error {
+	// Make sure the database exists (`CREATE DATABASE psusage`)
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  "psusage",
+		Precision: "s",
+	})
 	bp.AddPoint(p)
 
 	// Write the batch
-	if err := db.Write(bp); err != nil {
-		log.Fatal("InfluxDB write error", err)
-		os.Exit(1)
-	}
+	return db.Write(bp)
 }
 
 func RunQuery(db InfluxClient, command, database, precision string) (res []client.Result, err error) {
