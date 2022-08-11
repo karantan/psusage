@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	log      = logger.New("main", debug)
+	log      = logger.New("main", false)
 	hostname string
 	influx   influxdb.InfluxClient
-	debug    bool
 )
 
 func init() {
@@ -41,7 +40,6 @@ func initInflux(influxDSN string) influxdb.InfluxClient {
 }
 
 func main() {
-	log.Infof("Running psusage version %s", version.Version)
 	var p string
 	flag.StringVar(&p, "programs", "", `Name of the program(s) you want to monitor CPU usage over time. Example:
 
@@ -51,10 +49,12 @@ Or just:
 
 	psusage --programs mysqld`,
 	)
+	var debug bool
 	flag.BoolVar(&debug, "debug", false, "Debug mode. I'll write the data to the InfluxDB and also to the stdout.")
 	flag.Parse()
 	programs := strings.Fields(p)
 
+	log.Infof("Running psusage version %s", version.Version)
 	log.Infof("Monitoring CPU usage for %s", programs)
 
 	c := time.Tick(1 * time.Second)
@@ -65,7 +65,10 @@ Or just:
 		if len(stopped) > 0 {
 			for _, p := range stopped {
 				influxdb.AddPoint(influx, p, hostname)
-				log.Debugf("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
+
+				if debug {
+					log.Infof("%s (%s:%d) used %f%% CPU over %d seconds.", p.Program, p.User, p.PID, p.PCPU, p.Duration)
+				}
 			}
 			stopped = []collect.CPU_Usage{}
 		}
