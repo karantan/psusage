@@ -105,11 +105,11 @@ func parseStatPS(psOut string) (usages []CPU_Usage) {
 // For more details see https://man7.org/linux/man-pages/man1/ps.1.html
 func statFromPS(programs []string) string {
 	f := func(p string) string {
-		return fmt.Sprintf("$(pidof %s)", p)
+		return fmt.Sprintf("$(pgrep %s)", p)
 	}
-	pidOfs := strings.Join(gofp.ForEach(f, programs), " ")
+	pids := strings.Join(gofp.ForEach(f, programs), " ")
 
-	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user:32=,comm= %s", pidOfs)
+	psCommand := fmt.Sprintf("ps -o pcpu=,time=,pid=,user:32=,comm= %s", pids)
 	cmd := exec.Command("bash", "-c", psCommand)
 	log.Debugf("Running: `%s`", cmd.String())
 	cmd.Stderr = os.Stderr
