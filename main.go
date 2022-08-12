@@ -26,7 +26,13 @@ func init() {
 		os.Exit(1)
 	}
 	hostname, _ = os.Hostname()
-	initInflux(os.Getenv("INFLUXDB_PSUSAGE_HOST"))
+
+	influxDSN := os.Getenv("INFLUXDB_PSUSAGE_DSN")
+	if influxDSN == "" {
+		fmt.Println("INFLUXDB_PSUSAGE_DSN env var is missing.")
+		os.Exit(1)
+	}
+	initInflux(influxDSN)
 }
 
 func initInflux(influxDSN string) influxdb.InfluxClient {
