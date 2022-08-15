@@ -1,0 +1,28 @@
+version: '3'
+
+networks:
+  influxdb-test:
+    driver: bridge
+services:
+  tests:
+    container_name: "psusage-tests"
+    build:
+      context: .
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb-test
+  influxdb:
+    image: influxdb:1.8
+    restart: always
+    environment:
+      - DOCKER_INFLUXDB_NAME=psusage
+    ports:
+      - '8086:8086'
+    expose:
+      - '8086'
+    volumes:
+      - ./docker-scripts/influxdb:/docker-entrypoint-initdb.d
+      - ./tmp/influxdb:/var/lib/influxdb
+    networks:
+      - influxdb-test
