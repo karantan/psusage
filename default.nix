@@ -8,7 +8,7 @@ let
   }) { };
 in buildGoModule.override { go = pkgs.go_1_18; }  rec {
   pname = "psusage";
-  version = "1.0.4";
+  version = "1.0.5";
 
   src = nix-gitignore.gitignoreSource [ ] ./.;
 

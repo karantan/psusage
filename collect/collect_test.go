@@ -87,10 +87,10 @@ func Test_parseStatPS(t *testing.T) {
 `
 	got := parseStatPS(psOut)
 	want := []CPU_Usage{
-		{0.1, 6, "myprogram", 3477510, "root"},
-		{0.4, 62, "myprogram", 3518860, "worker1"},
-		{28.0, 3673, "myprogram", 3520027, "worker2"},
-		{6.1, 4, "myprogram", 3519918, "worker3"},
+		{0.1, 5.5, "myprogram", 3477510, "root"},
+		{0.4, 61.5, "myprogram", 3518860, "worker1"},
+		{28.0, 3672.5, "myprogram", 3520027, "worker2"},
+		{6.1, 3.5, "myprogram", 3519918, "worker3"},
 	}
 	assert.Equal(t, want, got)
 }
@@ -102,7 +102,7 @@ func Test_parseCPUTime(t *testing.T) {
 	tests := []struct {
 		name         string
 		args         args
-		wantDuration int
+		wantDuration float64
 	}{
 		{"just seconds", args{"00:00:01"}, 1},
 		{"just minutes", args{"00:01:00"}, 60},
