@@ -23,7 +23,7 @@ func (i CPU_Usage) EqualTo(j CPU_Usage) bool {
 // CPU_Usage holds information needed to calculate CPU credits usage
 type CPU_Usage struct {
 	PCPU     float64 // cpu utilization of the process in %
-	Duration int     // cumulative CPU time in seconds
+	Duration float64 // cumulative CPU time in seconds
 	Program  string  // name of the (parent) program
 	PID      int     // pid of the process
 	User     string  // effective user name
@@ -82,7 +82,7 @@ func parseStatPS(psOut string) (usages []CPU_Usage) {
 		infoArr := strings.Fields(line)
 		usages = append(usages, CPU_Usage{
 			PCPU:     parseFloat(infoArr[0]),
-			Duration: parseCPUTime(infoArr[1]) + 1, // because we are checking every second
+			Duration: parseCPUTime(infoArr[1]) + 0.5, // because we are checking every second
 			Program:  infoArr[4],
 			PID:      parseInt(infoArr[2]),
 			User:     infoArr[3],
@@ -164,24 +164,24 @@ func parseFloat(val string) float64 {
 }
 
 // parseCPUTime parses cumulative CPU time, "[DD-]hh:mm:ss" format to int (seconds only).
-func parseCPUTime(val string) (duration int) {
+func parseCPUTime(val string) (duration float64) {
 	if strings.Contains(val, "-") {
 		splitDays := strings.Split(val, "-")
 		days := splitDays[0]
 
 		if days != "" {
 			secInDay := 24 * 60 * 60
-			duration += secInDay * parseInt(days) // add days
+			duration += float64(secInDay * parseInt(days)) // add days
 		}
 		val = splitDays[1]
 	}
 
 	splitTime := strings.Split(val, ":")
-	hours := parseInt(splitTime[0])
+	hours := parseFloat(splitTime[0])
 	duration += hours * 60 * 60 // add hours
-	min := parseInt(splitTime[1])
-	duration += min * 60               // add minutes
-	duration += parseInt(splitTime[2]) // add seconds
+	min := parseFloat(splitTime[1])
+	duration += min * 60                 // add minutes
+	duration += parseFloat(splitTime[2]) // add seconds
 
 	return
 }
